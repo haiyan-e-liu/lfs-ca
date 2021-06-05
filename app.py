@@ -513,7 +513,7 @@ def plot_yoy_aug_tourism_employment(province):
 
     fig.update_layout(
         template = 'simple_white',
-        title = dict(text = '<b> Tourism Related Employment in ' + province + '<br> Year over Year Change in August </b>', 
+        title = dict(text = '<b> Tourism Related Employment in ' + province + '<br> Year over Year Change, August 2019 to August 2020 </b>', 
                          font_size = 16, 
                          yanchor = 'top', y = .96, xanchor = 'center', x = .5),
         autosize = False, width = 1000, height = 600,  # size of figure  
