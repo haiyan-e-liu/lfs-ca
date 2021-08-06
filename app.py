@@ -4,9 +4,7 @@
 # In[ ]:
 
 import pandas as pd
-import numpy as np
-import re
-
+import seaborn as sns
 import plotly.graph_objects as go  # plot a grouped and stacked bar chart
 from plotly.subplots import make_subplots
 import plotly.express as px
@@ -15,12 +13,6 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-
-
-# In[ ]:
-
-# cd 'C:\Users\hliu\Tourism Saskatchewan\GroupData - TourPlan\Statistics\Key Statistics\Employment Statistics\Labour Force Survey Raw Data'
-
 
 # In[ ]:
 lfs_tourism_employment = pd.read_csv('lfs_tourism_employment.csv')
