@@ -52,13 +52,9 @@ lfs_tourism_employment_tot = province.merge(lfs_tourism_employment_tot, on = 'Ge
 ## Plot provincial tourism related employment by month
 def plot_yoy_changes_by_month(province):
     
-    # Plot the year over year change for key sectors
-    # fig = px.line(yoy_change_sectors(province_name), x="Date", y="YoY_Change", color='Description', 
-    #           color_discrete_sequence = ['#05712f', '#ffd92f', '#0000FF', '#e31a1c'])
     dates = lfs_tourism_employment_tot.Date.unique()
-    colors = ['#023eff', '#ff7c00', '#1ac938', '#e8000b', '#8b2be2', 
-             '#9f4800', '#f14cc1', '#a3a3a3', '#ffc400', '#00d7ff', '#fb9a99', '#05712f', '#0b559f', '#aa1016']
-#     colors = sns.diverging_palette(130, 295, n=14, center = 'dark')
+    colors = sns.diverging_palette(150, 275, n=len(dates), center = 'dark').as_hex()
+    
     df = lfs_tourism_employment_tot
     
     fig = go.Figure()
@@ -78,7 +74,6 @@ def plot_yoy_changes_by_month(province):
                          font_size = 16, 
                          yanchor = 'top', y = .97, xanchor = 'center', x = .5), 
             legend = dict(orientation = 'v', 
-#                           yanchor = 'top', y = 1.05, xanchor = 'right', x = .98, 
                          traceorder = 'reversed', title = ""), # position of legend;    
             autosize = False, width = 1000, height = 600,  # size of figure  
     )
@@ -87,7 +82,7 @@ def plot_yoy_changes_by_month(province):
         dtick="M1",
         tickformat="%b\n%Y")
     fig.update_xaxes(
-        rangeslider_visible=False,    # Add Range Slider
+        rangeslider_visible=False,    # Don't Add Range Slider
         rangeselector=dict( 
             buttons=list([
                 dict(count=1, label="1m", step="month", stepmode="backward"),
@@ -110,7 +105,6 @@ def plot_yoy_changes_by_month(province):
 ## Tourism Related Employment in Saskatchewan
 
 # In[ ]:
-
 
 # Define function to format dataset and calculate subtotal and total tourism employment by province
 def calculate_tot_tourism_employment_by_province(province_name):
@@ -135,23 +129,21 @@ def calculate_tot_tourism_employment_by_province(province_name):
     
     return province_tourism_employment_tot
 
-
-# In[ ]:
-
-
-calculate_tot_tourism_employment_by_province('Saskatchewan')
-
-
-# ## Year Over Year Change in Monthly Total Tourism Employment
+  
+# ## Provincial Year Over Year Change in Monthly Total Tourism Employment
 
 # ### Define Functions to Calculate YoY Changes
 
 # In[ ]:
 
+# Generate total tourism employment for a specific province
+tot_province = calculate_tot_tourism_employment_by_province(province)
+
 def yoy_change(province):
     
     # Generate total tourism employment for a specific province
-    df = calculate_tot_tourism_employment_by_province(province)
+#     df = calculate_tot_tourism_employment_by_province(province)
+    df = tot_province
     
     ## Organize data to calculate monthly year over year change
     # Only keep the total employment
@@ -174,11 +166,12 @@ def yoy_change(province):
 def yoy_change_sectors(province):
     
     # Generate total tourism employment for a specific province
-    df = calculate_tot_tourism_employment_by_province(province)
+#     df = calculate_tot_tourism_employment_by_province(province)
+    df = tot_province
     
     ## Organize data to calculate monthly year over year change
     # Get employment data for the four sectors wanted
-    tot = df[df['NAICS'].isin([711, 713, 721, 722])]
+    tot = df[df['NAICS'].isin(lfs_tourism.Code.unique())]
 
     # Reshape data from wide to long
     tot_melted = pd.melt(tot, id_vars = ['NAICS', 'Description'], value_vars = tot.columns[2:], 
@@ -203,18 +196,18 @@ def yoy_change_sectors(province):
 def plot_yoy_changes(province, fig_title):
     
     # Generate year over year change data for the plot
-    data = yoy_change(province)
+    df = yoy_change(province)
     
     # Plot the year over year change
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     fig.add_trace(
-        go.Scatter(x = data['Date'], y = data['Total'], mode = 'lines + markers', 
+        go.Scatter(x = df['Date'], y = df['Total'], mode = 'lines + markers', 
                    name = 'Total Employment', line_color = '#05712f'),
     )
 
     fig.add_trace(
-        go.Scatter(x = data['Date'], y = data['YoY_Change'], mode = 'lines + markers', 
+        go.Scatter(x = df['Date'], y = df['YoY_Change'], mode = 'lines + markers', 
                    name = 'Year Over Year Change', line_color = '#0000FF'), 
         secondary_y = True,
     )
@@ -246,42 +239,89 @@ def plot_yoy_changes(province, fig_title):
     )
 
     fig.update_xaxes(
-        dtick="M1",
+        dtick="M3",
         tickformat="%b\n%Y",)
     
     fig.update_xaxes(
-        rangeslider_visible=True,    # Add Range Slider
-        rangeselector=dict( 
-            buttons=list([
-                dict(count=1, label="1m", step="month", stepmode="backward"),
-                dict(count=6, label="6m", step="month", stepmode="backward"),
-                dict(count=1, label="YTD", step="year", stepmode="todate"),
-                dict(count=1, label="1y", step="year", stepmode="backward"),
-                dict(step="all")
-            ])                      # Add Range Selector Buttons
+    rangeselector=dict( 
+        buttons=list([
+            dict(count=1, label="1m", step="month", stepmode="backward"),
+            dict(count=6, label="6m", step="month", stepmode="backward"),
+            dict(count=1, label="YTD", step="year", stepmode="todate"),
+            dict(count=1, label="1y", step="year", stepmode="backward"),
+            dict(step="all")
+                    ])                      # Add Range Selector Buttons
+                  )
+                )
+
+    # Add an annotation to display the maximum total tourism employment in the province since April 2019
+    fig.add_annotation(
+        x= df.loc[df['Total'].idxmax(), 'Date'],
+        y= df['Total'].max(),
+        xref="x",
+        yref="y",
+        text="max="+"{:,.0f}".format(df['Total'].max()),
+        showarrow=True,
+        font=dict(
+            family="Courier New, monospace",
+            size=16,
+            color="#ffffff"
+            ),
+        align="center",
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=2,
+        arrowcolor="#636363",
+        ax=20,
+        ay=-30,
+        bordercolor="#c7c7c7",
+        borderwidth=2,
+        borderpad=4,
+        bgcolor="#ff7f0e",
+        opacity=0.8
         )
-    )
     
+    # Add an annotation to display the current total tourism employment level
+    fig.add_annotation(
+        x= df['Date'].max(),
+        y= df.loc[df['Date'].idxmax(), 'Total'],
+        xref="x",
+        yref="y",
+        text="max="+"{:,.0f}".format(df.loc[df['Date'].idxmax(), 'Total']),
+        showarrow=True,
+        font=dict(
+            family="Courier New, monospace",
+            size=16,
+            color="#ffffff"
+            ),
+        align="center",
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=2,
+        arrowcolor="#636363",
+        ax=20,
+        ay=-30,
+        bordercolor="#c7c7c7",
+        borderwidth=2,
+        borderpad=4,
+        bgcolor="#ff7f0e",
+        opacity=0.8
+        )
+        
     return fig
 
 # In[ ]:
 
 
-# Plot monthy total tourism related employment and its yoy change for specific sectors
+# Plot monthy total tourism related employment and its yoy change by sector
 def plot_yoy_changes_sector(province, fig_title):
-    
-    # Plot the year over year change for key sectors
-    # fig = px.line(yoy_change_sectors(province_name), x="Date", y="YoY_Change", color='Description', 
-    #           color_discrete_sequence = ['#05712f', '#ffd92f', '#0000FF', '#e31a1c'])
-    labels = ['Performing arts, spectator sports and related industries',
-               'Amusement, gambling and recreation industries',
-               'Accommodation services', 'Food services and drinking places']
-    colors = ['#05712f', '#ffd92f', '#0000FF', '#e31a1c']
-    
     df = yoy_change_sectors(province)
     
     fig = go.Figure()
 
+    labels = sorted(df.Description.unique().tolist())
+    colors = sns.color_palette("Paired", len(labels)).as_hex()
+    
     for r, c in zip(labels, colors):
         plot_df = df[df['Description'] == r]
         fig.add_trace(go.Scatter(
@@ -298,16 +338,15 @@ def plot_yoy_changes_sector(province, fig_title):
                          font_size = 16, 
                          yanchor = 'top', y = .97, xanchor = 'center', x = .5), 
             legend = dict(orientation = 'v', 
-#                           yanchor = 'top', y = 1.05, xanchor = 'right', x = .98, 
                          traceorder = 'grouped', title = ""), # position of legend;    
             autosize = False, width = 1000, height = 600,  # size of figure  
     )
 
     fig.update_xaxes(
-        dtick="M1",
+        dtick="M3",
         tickformat="%b\n%Y")
+    
     fig.update_xaxes(
-        rangeslider_visible=False,    # Add Range Slider
         rangeselector=dict( 
             buttons=list([
                 dict(count=1, label="1m", step="month", stepmode="backward"),
@@ -330,8 +369,9 @@ def plot_yoy_changes_sector(province, fig_title):
 # Calculate YoY change of peak month (August) tourism employment by province
 def plot_yoy_aug_tourism_employment(province):
     # Get tourism_employment for all months
-    tot_employment = calculate_tot_tourism_employment_by_province(province)
-    prov_tourism_employment = tot_employment[(tot_employment['Description'] != 'Total') & (tot_employment['Description'] != 'Subtotal')]
+#     tot_employment = calculate_tot_tourism_employment_by_province(province)
+    
+    prov_tourism_employment = tot_province[(tot_province['Description'] != 'Total') & (tot_province['Description'] != 'Subtotal')]
     
     # Calcualte YoY Change in Peak month by sector
     yoy_all_sectors_aug = prov_tourism_employment[['NAICS', 'Description', '2019-08-01', '2020-08-01']]
