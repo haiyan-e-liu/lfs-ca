@@ -62,7 +62,7 @@ def plot_yoy_changes_by_month(province):
         
     fig.update_layout(
             template = "simple_white", 
-            title = dict(text = '<b>' + 'Tourism Related Employment Year over Year Change by Month' + '</b>', 
+            title = dict(text = '<b>' + 'Tourism Related Employment, Y/Y Change by Month' + '</b>', 
                          font_size = 16, 
                          yanchor = 'top', y = .97, xanchor = 'center', x = .5), 
             legend = dict(orientation = 'v', 
@@ -128,14 +128,10 @@ def calculate_tot_tourism_employment_by_province(province_name):
 
 # In[ ]:
 
-# Generate total tourism employment for a specific province
-tot_province = calculate_tot_tourism_employment_by_province(province)
-
 def yoy_change(province):
     
     # Generate total tourism employment for a specific province
-#     df = calculate_tot_tourism_employment_by_province(province)
-    df = tot_province
+    df = calculate_tot_tourism_employment_by_province(province)
     
     ## Organize data to calculate monthly year over year change
     # Only keep the total employment
@@ -148,7 +144,17 @@ def yoy_change(province):
     tot_melted = pd.concat([tot_melted, round(tot_melted['Total'].pct_change(periods = 12)*100, 0)], axis = 1)
     
     tot_melted.columns = ['Date', 'Total', 'YoY_Change']
-    tot_melted.dropna(subset = ['YoY_Change'], inplace = True) # only keep months with values of yoy change    
+    
+    # Total tourism employment in SK was estimated at 71,100 in August 2019, but the number got adjusted later on. 
+    # For now, manually change the number to 71,100
+    if province == 'Saskatchewan':
+        tot_melted.loc[tot_melted['Date'] == '2019-08-01', 'Total'] = 71100
+
+    # Save the maximum monthly employment since April 2019
+    tot_melted['Total_Max'] = tot_melted['Total'].max()
+    
+    tot_melted.dropna(subset = ['YoY_Change'], inplace = True) # only keep months with values of yoy change       
+    tot_melted['Date'] = pd.to_datetime(tot_melted['Date'])
     
     return tot_melted
 
@@ -158,12 +164,11 @@ def yoy_change(province):
 def yoy_change_sectors(province):
     
     # Generate total tourism employment for a specific province
-#     df = calculate_tot_tourism_employment_by_province(province)
-    df = tot_province
+    df = calculate_tot_tourism_employment_by_province(province)
     
     ## Organize data to calculate monthly year over year change
     # Get employment data for the four sectors wanted
-    tot = df[df['NAICS'].isin(lfs_tourism.Code.unique())]
+    tot = df[df['NAICS'].isin(lfs_tourism_employment.NAICS.unique())]
 
     # Reshape data from wide to long
     tot_melted = pd.melt(tot, id_vars = ['NAICS', 'Description'], value_vars = tot.columns[2:], 
@@ -246,58 +251,30 @@ def plot_yoy_changes(province, fig_title):
                   )
                 )
 
-    # Add an annotation to display the maximum total tourism employment in the province since April 2019
+    # Add a line to display the maximum total tourism employment in the province during the plotting period
+    fig.add_hline(y = df['Total_Max'].max(), line_width = 3, line_dash = 'dash', line_color="black")
+
+    # # Add an annotation to display the maximum total tourism employment in the province since April 2019       
     fig.add_annotation(
-        x= df.loc[df['Total'].idxmax(), 'Date'],
-        y= df['Total'].max(),
-        xref="x",
-        yref="y",
-        text="max="+"{:,.0f}".format(df['Total'].max()),
-        showarrow=True,
+        # Setting xref and/or yref to "paper" will cause the x and y attributes to be interpreted in paper coordinates.
+        x = 0.02, y = 0.97,  
+        xref="paper",
+        yref="paper",
+        text="Max Employment Pre-Pandemic = "+"{:,.0f}".format(df['Total_Max'].max()),
+        showarrow=False, 
         font=dict(
             family="Courier New, monospace",
-            size=16,
+            size=14,
             color="#ffffff"
             ),
         align="center",
-        arrowhead=2,
-        arrowsize=1,
-        arrowwidth=2,
-        arrowcolor="#636363",
-        ax=20,
-        ay=-30,
+        ax=30,
+        ay=-50,
         bordercolor="#c7c7c7",
         borderwidth=2,
         borderpad=4,
-        bgcolor="#ff7f0e",
-        opacity=0.8
-        )
-    
-    # Add an annotation to display the current total tourism employment level
-    fig.add_annotation(
-        x= df['Date'].max(),
-        y= df.loc[df['Date'].idxmax(), 'Total'],
-        xref="x",
-        yref="y",
-        text="max="+"{:,.0f}".format(df.loc[df['Date'].idxmax(), 'Total']),
-        showarrow=True,
-        font=dict(
-            family="Courier New, monospace",
-            size=16,
-            color="#ffffff"
-            ),
-        align="center",
-        arrowhead=2,
-        arrowsize=1,
-        arrowwidth=2,
-        arrowcolor="#636363",
-        ax=20,
-        ay=-30,
-        bordercolor="#c7c7c7",
-        borderwidth=2,
-        borderpad=4,
-        bgcolor="#ff7f0e",
-        opacity=0.8
+        bgcolor='#05712f',
+        opacity=1
         )
         
     return fig
@@ -318,15 +295,14 @@ def plot_yoy_changes_sector(province, fig_title):
         plot_df = df[df['Description'] == r]
         fig.add_trace(go.Scatter(
             x = plot_df['Date'], 
-            y = plot_df['YoY_Change'],
+            y = plot_df['Total'],  # plot number of jobs in the sector rather than y/y change now
             name = r, marker_color= c, 
             )
         ) 
         
     fig.update_layout(
             template = "simple_white", 
-            title = dict(text = '<b>' + fig_title + ' in ' + province + 
-                         '<br>' + 'Year over Year Change, Key Sectors' + '</b>', 
+            title = dict(text = '<b>' + fig_title + ' in ' + province + ' by Sector </b>', 
                          font_size = 16, 
                          yanchor = 'top', y = .97, xanchor = 'center', x = .5), 
             legend = dict(orientation = 'v', 
@@ -361,9 +337,9 @@ def plot_yoy_changes_sector(province, fig_title):
 # Calculate YoY change of peak month (August) tourism employment by province
 def plot_yoy_aug_tourism_employment(province):
     # Get tourism_employment for all months
-#     tot_employment = calculate_tot_tourism_employment_by_province(province)
+    df = calculate_tot_tourism_employment_by_province(province)
     
-    prov_tourism_employment = tot_province[(tot_province['Description'] != 'Total') & (tot_province['Description'] != 'Subtotal')]
+    prov_tourism_employment = df[(df['Description'] != 'Total') & (df['Description'] != 'Subtotal')]
     
     # Calcualte YoY Change in Peak month by sector
     yoy_all_sectors_aug = prov_tourism_employment[['NAICS', 'Description', '2019-08-01', '2020-08-01']]
@@ -378,7 +354,7 @@ def plot_yoy_aug_tourism_employment(province):
 
     fig.update_layout(
         template = 'simple_white',
-        title = dict(text = '<b> Tourism Related Employment in ' + province + '<br> Year over Year Change, August 2019 to August 2020 </b>', 
+        title = dict(text = '<b> Tourism Related Employment in ' + province + '<br> Y/Y Change, August 2019 to August 2020 </b>', 
                          font_size = 16, 
                          yanchor = 'top', y = .96, xanchor = 'center', x = .5),
         autosize = False, width = 1000, height = 600,  # size of figure  
