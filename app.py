@@ -5,6 +5,8 @@
 
 import pandas as pd
 import seaborn as sns
+import datetime as dt
+
 import plotly.graph_objects as go  # plot a grouped and stacked bar chart
 from plotly.subplots import make_subplots
 import plotly.express as px
@@ -342,8 +344,11 @@ def plot_yoy_aug_tourism_employment(province):
     prov_tourism_employment = df[(df['Description'] != 'Total') & (df['Description'] != 'Subtotal')]
     
     # Calcualte YoY Change in Peak month by sector
-    yoy_all_sectors_aug = prov_tourism_employment[['NAICS', 'Description', '2019-08-01', '2020-08-01']]
-    yoy_change_aug = pd.DataFrame(round(yoy_all_sectors_aug[['2019-08-01', '2020-08-01']].pct_change(axis = 'columns')['2020-08-01']*100, 0)).fillna(0)
+    cy = dt.datetime.now().year   # current year
+    aug_cols = [str(cy-1) + '-08-01', str(cy) + '-08-01']
+    
+    yoy_all_sectors_aug = prov_tourism_employment[['NAICS', 'Description'] + aug_cols]
+    yoy_change_aug = pd.DataFrame(round(yoy_all_sectors_aug[aug_cols].pct_change(axis = 'columns').iloc[:, 1]*100, 0)).fillna(0)
     yoy_change_aug.columns = ['YoY_Change']
     yoy_all_sectors_aug = yoy_all_sectors_aug.join(yoy_change_aug).sort_values(by = 'YoY_Change')
     
@@ -354,7 +359,8 @@ def plot_yoy_aug_tourism_employment(province):
 
     fig.update_layout(
         template = 'simple_white',
-        title = dict(text = '<b> Tourism Related Employment in ' + province + '<br> Y/Y Change, August 2019 to August 2020 </b>', 
+        title = dict(text = '<b> Tourism Related Employment in ' + province + 
+                     '<br> Y/Y Change, August' + str(cy-1) + ' to August ' + str(cy) + '</b>', 
                          font_size = 16, 
                          yanchor = 'top', y = .96, xanchor = 'center', x = .5),
         autosize = False, width = 1000, height = 600,  # size of figure  
