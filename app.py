@@ -340,6 +340,8 @@ def plot_yoy_aug_tourism_employment(province):
 
     # Calcualte YoY Change in Peak month by sector
     cy = dt.datetime.now().year   # current year
+    if dt.datetime.now().month <8:
+      cy = cy-1
     aug_cols = [str(cy-1) + '-08-01', str(cy) + '-08-01']
 
     yoy_all_sectors_aug = df[['Industry'] + aug_cols]
