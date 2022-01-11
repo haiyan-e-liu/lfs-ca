@@ -46,10 +46,11 @@ lfs_tourism_employment_tot = province.merge(lfs_tourism_employment_tot, on = 'Ge
 ## Plot provincial tourism related employment by month
 def plot_yoy_changes_by_month(province):
 
-    dates = lfs_tourism_employment_tot.Date.unique()
+    dates = sorted(lfs_tourism_employment_tot.Date.unique())[-12:]
     colors = sns.diverging_palette(150, 275, n=len(dates), center = 'dark').as_hex()
 
     df = lfs_tourism_employment_tot
+    df = df[df['Date'].isin(dates)]
 
     fig = go.Figure()
 
