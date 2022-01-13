@@ -388,7 +388,7 @@ province = lfs_tourism_employment['Geography'].unique()
 app.layout = html.Div([
     html.Div([dcc.Dropdown(id='province-select',
                            options=[{'label': x, 'value': x} for x in province],
-                           value='Saskatchewan', style={'width': '500px'}
+                           value='Saskatchewan', style={'width': '300px'}
                           )
              ],
              className = 'row',
