@@ -348,6 +348,7 @@ def plot_mom_tourism_employment(province):
                      'M/M Change, ' + months_col[0][:-3] + ' to ' + months_col[1][:-3] + ' </b>', 
                          font_size = 16, 
                          yanchor = 'top', y = .96, xanchor = 'center', x = .5),
+                     autosize = False, width = 1000, height = 600,  # size of figure
     )
 
     fig.update_xaxes(title = '')
