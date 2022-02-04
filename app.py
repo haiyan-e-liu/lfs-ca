@@ -319,6 +319,44 @@ def plot_yoy_changes_sector(province, fig_title):
 
 # In[ ]:
 
+# Calculate MoM change of tourism employment by industry
+def plot_mom_tourism_employment(province):
+    
+    # Get tourism_employment for all months
+    df = calculate_tot_tourism_employment_by_province(province)
+    
+    df = df[df['Industry'] != 'Total']
+    
+    # Calcualte MoM change by sector
+    months_col = df.columns.tolist()[-2:]
+    recent_2_months = df[['Industry'] + months_col]
+    
+    mom_change = pd.DataFrame(round(recent_2_months[df.columns[-2:]].pct_change(axis = 'columns').iloc[:, 1]*100, 0)).fillna(0)
+    mom_change.columns = ['mom_Change']
+    
+    recent_2_months = recent_2_months.join(mom_change).sort_values(by = 'mom_Change')
+    recent_2_months['label'] = recent_2_months['mom_Change'].astype(str) + '%'
+    
+    
+    # Plot mom Change in Peak month by sector
+    fig = px.bar(recent_2_months, x = 'Industry', y = 'mom_Change', text = 'label', 
+                color_discrete_sequence  = ['green']*len(recent_2_months))
+
+    fig.update_layout(
+        template = 'simple_white',
+        title = dict(text = '<b> Tourism Employment in ' + province + '<br> ' + 
+                     'M/M Change, ' + months_col[0][:-3] + ' to ' + months_col[1][:-3] + ' </b>', 
+                         font_size = 16, 
+                         yanchor = 'top', y = .96, xanchor = 'center', x = .5),
+    )
+
+    fig.update_xaxes(title = '')
+    fig.update_yaxes(visible = False)
+
+    return fig
+  
+# In[ ]:
+
 # Calculate YoY change of peak month (August) tourism employment by province
 def plot_yoy_aug_tourism_employment(province):
     # Get tourism_employment for all months
@@ -381,6 +419,7 @@ app.layout = html.Div([
         dcc.Graph(id = 'yoy-by-month'),
         dcc.Graph(id = 'line-chart'),
         dcc.Graph(id = 'sector-line-chart'),
+        dcc.Graph(id = 'mom-line-chart'),
         dcc.Graph(id = 'aug-line-chart')
         ])
     ]
@@ -390,6 +429,7 @@ app.layout = html.Div([
     [Output('yoy-by-month', 'figure'),
      Output('line-chart', 'figure'),
      Output('sector-line-chart', 'figure'),
+     Output('mom-line-chart', 'figure'),     
      Output('aug-line-chart', 'figure')],
     [Input('province-select', 'value')]
 )
@@ -397,6 +437,7 @@ def update_line_chart(province):
     return [plot_yoy_changes_by_month(province),
             plot_yoy_changes(province, 'Tourism Employment'),
             plot_yoy_changes_sector(province, 'Tourism Employment'),
+            plot_mom_tourism_employment(province),
             plot_yoy_aug_tourism_employment(province)]
 
 if __name__ == '__main__':
