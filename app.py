@@ -336,10 +336,10 @@ def plot_yoy_aug_tourism_employment(province):
     yoy_change_aug = pd.DataFrame(round(yoy_all_sectors_aug[aug_cols].pct_change(axis = 'columns').iloc[:, 1]*100, 0)).fillna(0)
     yoy_change_aug.columns = ['YoY_Change']
     yoy_all_sectors_aug = yoy_all_sectors_aug.join(yoy_change_aug).sort_values(by = 'YoY_Change')
-
+    yoy_all_sectors_aug['label'] = yoy_all_sectors_aug['YoY_Change'].astype(str) + '%'
 
     # Plot YoY Change in Peak month by sector
-    fig = px.bar(yoy_all_sectors_aug, x = 'Industry', y = 'YoY_Change', text = 'YoY_Change',
+    fig = px.bar(yoy_all_sectors_aug, x = 'Industry', y = 'YoY_Change', text = 'label',
                 color_discrete_sequence  = ['green']*len(yoy_all_sectors_aug))
 
     fig.update_layout(
@@ -352,7 +352,7 @@ def plot_yoy_aug_tourism_employment(province):
     )
 
     fig.update_xaxes(title = '')
-    fig.update_yaxes(title = '%')
+    fig.update_yaxes(visible = False)
 
     return fig
 
