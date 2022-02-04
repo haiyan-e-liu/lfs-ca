@@ -46,7 +46,7 @@ lfs_tourism_employment_tot = province.merge(lfs_tourism_employment_tot, on = 'Ge
 ## Plot provincial tourism related employment by month
 def plot_yoy_changes_by_month(province):
 
-    df = lfs_tourism_employment_tot
+    df = lfs_tourism_employment_tot.copy()
     df['Date'] = df['Date'].str[:-3]  # Date is an object type, only show year and month of the date
     
     # Only show y/y change for the last 12 months
@@ -74,22 +74,6 @@ def plot_yoy_changes_by_month(province):
             legend = dict(orientation = 'v',
                          traceorder = 'reversed', title = ""), # position of legend;
             autosize = False, width = 1000, height = 600,  # size of figure
-    )
-
-    fig.update_xaxes(
-        dtick="M1",
-        tickformat="%b\n%Y")
-    fig.update_xaxes(
-        rangeslider_visible=False,    # Don't Add Range Slider
-        rangeselector=dict(
-            buttons=list([
-                dict(count=1, label="1m", step="month", stepmode="backward"),
-                dict(count=6, label="6m", step="month", stepmode="backward"),
-                dict(count=1, label="YTD", step="year", stepmode="todate"),
-                dict(count=1, label="1y", step="year", stepmode="backward"),
-                dict(step="all")
-            ])                      # Add Range Selector Buttons
-        )
     )
 
     fig.update_yaxes(title = '%')
@@ -388,7 +372,7 @@ province = lfs_tourism_employment['Geography'].unique()
 app.layout = html.Div([
     html.Div([dcc.Dropdown(id='province-select',
                            options=[{'label': x, 'value': x} for x in province],
-                           value='Saskatchewan', style={'width': '500px'}
+                           value='Saskatchewan', style={'width': '300px'}
                           )
              ],
              className = 'row',
