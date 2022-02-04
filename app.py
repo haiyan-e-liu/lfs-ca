@@ -344,7 +344,7 @@ def plot_mom_tourism_employment(province):
 
     fig.update_layout(
         template = 'simple_white',
-        title = dict(text = '<b> Tourism Employment in ' + province + '<br> ' + 
+        title = dict(text = '<b> Tourism Employment in ' + province + ' by Industry <br> ' + 
                      'M/M Change, ' + months_col[0][:-3] + ' to ' + months_col[1][:-3] + ' </b>', 
                          font_size = 16, 
                          yanchor = 'top', y = .96, xanchor = 'center', x = .5),
@@ -383,8 +383,8 @@ def plot_yoy_aug_tourism_employment(province):
 
     fig.update_layout(
         template = 'simple_white',
-        title = dict(text = '<b> Tourism Employment in ' + province +
-                     '<br> Y/Y Change, Aug ' + str(cy-1) + ' to Aug ' + str(cy) + '</b>',
+        title = dict(text = '<b> Tourism Employment in ' + province + ' by Industry <br>' + 
+                     'Y/Y Change, Aug ' + str(cy-1) + ' to Aug ' + str(cy) + '</b>',
                          font_size = 16, 
                          yanchor = 'top', y = .96, xanchor = 'center', x = .5),
         autosize = False, width = 1000, height = 600,  # size of figure
