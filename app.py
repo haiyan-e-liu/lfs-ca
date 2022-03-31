@@ -163,7 +163,7 @@ def yoy_change_sectors(province):
     tot_melted = pd.concat([tot_melted, round(tot_melted.groupby('Industry')['Total'].pct_change(periods = 12)*100, 0)], axis = 1)
     tot_melted.columns = ['Industry', 'Date', 'Total', 'YoY_Change']
 
-    tot_melted.dropna(subset = ['YoY_Change'], inplace = True) # only keep months with values of yoy change
+    # tot_melted.dropna(subset = ['YoY_Change'], inplace = True) # only keep months with values of yoy change
     tot_melted.sort_values(by = ['Industry', 'Date'], inplace = True)
 
     return tot_melted
